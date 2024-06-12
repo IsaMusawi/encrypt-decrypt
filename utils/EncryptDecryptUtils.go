@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/des"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -67,14 +68,14 @@ func encrypt(data interface{}, key, iv []byte) (string, error) {
 	ciphertext := make([]byte, len(paddedData))
 	mode.CryptBlocks(ciphertext, paddedData)
 
-	encode := hex.EncodeToString(ciphertext)
+	encode := base64.StdEncoding.EncodeToString(ciphertext)
 
 	return encode, nil
 }
 
 func decrypt(encryptedData string, key, iv []byte) (interface{}, error) {
 	// body := bytes.TrimPrefix([]byte(encryptedData), []byte("\xef\xbb\xbf"))
-	ciphertext, err := hex.DecodeString(encryptedData)
+	ciphertext, err := base64.StdEncoding.DecodeString(encryptedData)
 	if err != nil {
 		return nil, err
 	}

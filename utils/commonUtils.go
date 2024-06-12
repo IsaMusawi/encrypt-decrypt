@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-func Aes256Encrypt(data string, secret, salt string, iteration, keySize int) (string, error) {
+func Aes256Encrypt(data interface{}, secret, salt string, iteration, keySize int) (string, error) {
 	// secretbytes := []byte(secret)
 	// saltbytes := []byte(salt)
 	// key := []byte("399cbf0de75d24bc2cb7396e5e9c4e72c34adb4f089bb228459363e1b6efc310") //GenerateKey(secretbytes, saltbytes, iteration, keySize)
@@ -14,14 +14,22 @@ func Aes256Encrypt(data string, secret, salt string, iteration, keySize int) (st
 	// fmt.Println(data)
 
 	// key := GenerateKey([]byte(secret), []byte(salt), iteration, keySize)
-	// // keystring := base64.StdEncoding.EncodeToString(key)
+	// keybytes, err := hex.DecodeString(key)
+	// if err != nil {
+	// 	return "", err
+	// }
 	// fmt.Println(key)
 	// keybytes, err := hex.DecodeString(key)
 	// if err != nil {
 	// 	return "", err
 	// }
 
-	// encryptData, err := encrypt(data, keybytes, iv)
+	// jsonData, err := json.Marshal(data)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	// encryptData, err := EncryptAes256(string(jsonData), string(keybytes), 1)
 
 	encryptData, err := encryptFromJavaCode(data, secret, salt, iteration, keySize)
 	if err != nil {

@@ -5,6 +5,12 @@ import (
 	"fmt"
 )
 
+type Lov struct {
+	id           string
+	value        string
+	anotherValue string
+}
+
 var (
 	// salt   = []byte("uxKqTsYSkDVeXxre")
 	// secret = []byte("Faw8Qm8Ttwgf2Cc3")
@@ -25,6 +31,12 @@ var (
 		"group_position": "JUNIOR MANAGER",
 		"ouCode":         "HO",
 		"department":     "BUSINESS PROCESS ANALYST DEPARTMENT",
+	}
+
+	tes2data = Lov{
+		id:           "1",
+		value:        "okkk",
+		anotherValue: "okkk",
 	}
 )
 
@@ -47,7 +59,7 @@ func main() {
 
 	fmt.Println("\n===================================================================\n")
 
-	encrypted, err := utils.Aes256Encrypt(tesinit, secret, salt, iteration, keySize)
+	encrypted, err := utils.Aes256Encrypt(tes2data, secret, salt, iteration, keySize)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -59,7 +71,8 @@ func main() {
 	// if err != nil {
 	// 	fmt.Println(err.Error())
 	// }
-	fmt.Println("Encrypted: ", encrypted == tesdata)
+	fmt.Println("Key Valid: ", keyangular == key)
+	fmt.Println("Encrypted Valid: ", encrypted == tesdata)
 	fmt.Println(tesdata)
 	fmt.Println(encrypted)
 }
