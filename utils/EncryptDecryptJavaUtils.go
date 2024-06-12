@@ -10,8 +10,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	pad "github.com/zenazn/pkcs7pad"
 )
 
 func encryptFromJavaCode(data interface{}, secret, salt string, iteration, keysize int) (string, error) {
@@ -48,16 +46,16 @@ func encryptFromJavaCode(data interface{}, secret, salt string, iteration, keysi
 	}
 
 	// Initialize IV
-	iv := secretBytes[:aes.BlockSize]
+	iv := secretBytes[:]
 	// iv := make([]byte, aes.BlockSize)
 	// if _, err := rand.Read(iv); err != nil {
 	// 	return "", err
 	// }
 
 	// Pad plaintext
-	// paddedText := PKCS5Padding(jsonData, 16)
+	paddedText := PKCS5Padding(jsonData, 16)
 
-	paddedText := pad.Pad(jsonData, aes.BlockSize)
+	// paddedText := paddingData(jsonData, 16)
 
 	// Encrypt the message
 	ciphertext := make([]byte, len(paddedText))
@@ -66,7 +64,7 @@ func encryptFromJavaCode(data interface{}, secret, salt string, iteration, keysi
 
 	// Encode the encrypted text to base64
 	// encodedIV := base64.StdEncoding.EncodeToString(iv)
-	encryptedText := hex.EncodeToString(ciphertext)
+	encryptedText := base64.StdEncoding.EncodeToString(ciphertext)
 	// encryptedText := fmt.Sprintf("%s%s", encodedIV, encryptedCipherText)
 
 	return encryptedText, nil

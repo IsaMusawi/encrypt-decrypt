@@ -1,14 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"encrypt-decrypt-utils/utils"
 	"fmt"
 )
 
 type Lov struct {
-	id           string
-	value        string
-	anotherValue string
+	Id           string `json:"id"`
+	Value        string	`json:"value"`
+	AnotherValue string `json:"anotherValue"`
 }
 
 var (
@@ -33,19 +34,25 @@ var (
 		"department":     "BUSINESS PROCESS ANALYST DEPARTMENT",
 	}
 
-	tes2data = Lov{
-		id:           "1",
-		value:        "okkk",
-		anotherValue: "okkk",
-	}
+	
 )
 
 func main() {
 	// data := "TEST"
 
+	tes2data := Lov{
+		Id:           "1",
+		Value:        "okkk",
+		AnotherValue: "okkk",
+	}
+
 	key := utils.GenerateKey([]byte(secret), []byte(salt), iteration, keySize)
-	// keystring := base64.StdEncoding.EncodeToString(key)
-	fmt.Println(key)
+
+	jsonData, err := json.Marshal(tes2data)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(jsonData))
 
 	fmt.Println("\n===================================================================\n")
 
