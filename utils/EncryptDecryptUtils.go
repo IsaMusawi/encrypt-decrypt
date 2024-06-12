@@ -4,16 +4,18 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/sha256"
-	"encoding/base64"
+	"crypto/des"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 
 	"golang.org/x/crypto/pbkdf2"
 )
 
-func generateKey(secret, salt []byte, iteration, keySize int) []byte {
-	return pbkdf2.Key(secret, salt, iteration, keySize, sha256.New)
+func GenerateKey(secret, salt []byte, iteration, keySize int) string {
+	key := pbkdf2.Key(secret, salt, iteration, keySize, sha1.New)
+	return hex.EncodeToString(key)
 }
 
 func paddingData(data []byte, blocksize int) []byte {
@@ -33,23 +35,22 @@ func upPaddingData(data []byte, blockSize int) ([]byte, error) {
 		return nil, errors.New("Invalid unPadding")
 	}
 
-	paddedPart := data[length - padLength:]
+	paddedPart := data[length-padLength:]
 	for _, v := range paddedPart {
 		if int(v) < padLength {
 			return nil, errors.New("Invalid unPadding part")
 		}
 	}
-	
-	return data[:length- padLength], nil
+
+	return data[:length-padLength], nil
 }
 
 func encrypt(data interface{}, key, iv []byte) (string, error) {
-	
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return "", err
 	}
-
 	//create aes chiper
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -61,18 +62,19 @@ func encrypt(data interface{}, key, iv []byte) (string, error) {
 
 	//create a cbc mode
 	mode := cipher.NewCBCEncrypter(block, iv)
-	
+
 	//encrypt data
 	ciphertext := make([]byte, len(paddedData))
 	mode.CryptBlocks(ciphertext, paddedData)
 
-	encode := base64.StdEncoding.EncodeToString(ciphertext)
+	encode := hex.EncodeToString(ciphertext)
 
 	return encode, nil
 }
 
 func decrypt(encryptedData string, key, iv []byte) (interface{}, error) {
-	ciphertext, err := base64.StdEncoding.DecodeString(encryptedData)
+	// body := bytes.TrimPrefix([]byte(encryptedData), []byte("\xef\xbb\xbf"))
+	ciphertext, err := hex.DecodeString(encryptedData)
 	if err != nil {
 		return nil, err
 	}
@@ -91,13 +93,17 @@ func decrypt(encryptedData string, key, iv []byte) (interface{}, error) {
 	mode.CryptBlocks(plaintext, ciphertext)
 
 	//remove padding
-	uppaddedData, err := upPaddingData(plaintext, aes.BlockSize)
-	if err != nil {
-		return nil, err
-	}
+	// uppaddedData, err := upPaddingData(plaintext, 8)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// fmt.Println(plaintext)
+	// uppaddedData := pkcs5UnPadding(plaintext)
+	// fmt.Println(uppaddedData)
 
 	var data interface{}
-	err = json.Unmarshal(uppaddedData, &data)
+	err = json.Unmarshal(plaintext, &data)
 	if err != nil {
 		return nil, err
 	}
@@ -105,26 +111,26 @@ func decrypt(encryptedData string, key, iv []byte) (interface{}, error) {
 	return data, nil
 }
 
-func Aes256Encrypt(data interface{}, secret, salt []byte, iteration, keySize int) (string, error) {
-	key := generateKey(secret, salt, iteration, keySize)
-	iv := secret[:aes.BlockSize]
+func DesDecryption(key, iv, cipherText []byte) ([]byte, error) {
 
-	encryptData, err := encrypt(data, key, iv)
+	block, err := des.NewCipher(key)
+
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return encryptData, nil
+	blockMode := cipher.NewCBCDecrypter(block, iv)
+	origData := make([]byte, len(cipherText))
+	blockMode.CryptBlocks(origData, cipherText)
+	origData = PKCS5UnPadding(origData)
+	return origData, nil
 }
 
-func Aes256Decrypt(data string, secret, salt []byte, iteration, keySize int) (interface{}, error) {
-	key := generateKey(secret, salt, iteration, keySize)
-	iv := secret[:aes.BlockSize]
-
-	decryptData, err := decrypt(data, key, iv)
-	if err != nil {
-		return "", err
-	}
-
-	return decryptData, nil
+func generateRandIV(secret string) ([]byte, error) {
+	iv := []byte(secret)[:aes.BlockSize]
+	// _, err := rand.Read(iv)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to generate random IV: %w", err)
+	// }
+	return iv, nil
 }
